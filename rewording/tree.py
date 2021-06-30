@@ -1,23 +1,11 @@
 from rewording.changer import change
 
 
-def find_arg(data: str):
-    start = finish = 0
-    for i in range(len(data)):
-        if data[i] == '$' and start == 0:
-            start = i + 1
-            continue
-        if data[i] == '$' and start != 0 and finish == 0:
-            finish = i
-            break
-    return data[start:finish]
-
-
 class Node:
-    def __init__(self, data, template):
-        self.data = data
+    def __init__(self, template, data):
         self.template = template
-        self.arg = find_arg(data)
+        self.words = template.split('$')
+        self.data = data
         self.children = []
 
     def add_child(self, node):
@@ -26,57 +14,66 @@ class Node:
     def delete_child(self, index):
         self.children.pop(index)
 
-    def change_pattern(self):
-        res = change(self.arg, self.template)
-        start = finish = 0
+    @property
+    def result(self):
+        return '$'.join(self.words)
 
-        for i in range(len(self.data)):
-            if self.data[i] == '$' and start == 0:
-                start = i + 1
-            elif self.data[i] == '$' and start != 0 and finish == 0:
-                finish = i
-                break
-
-        final = self.data[:start] + res + self.data[finish:]
-        self.data = final
-
-    def get_child_nodes(self, tree):
+    def apply_in_position(self, index, new_word):
+        self.words[index] = change(self.words[index], new_word)
         for child in self.children:
+            try:
+                child.apply_in_position(child.data.index(new_word) * 2 + 1, new_word)
+            except ValueError:
+                pass
+
+    def apply_no_cascade(self):
+        for i, word in enumerate(self.data):
+            index = i * 2 + 1
+            self.words[index] = change(self.words[index], word)
+
+    def apply_template(self):
+        for i, word in enumerate(self.data):
+            self.apply_in_position(i * 2 + 1, word)
+
+    def get_children_results(self):
+        results = []
+        for child in self.children:
+            results.append(child.result)
             if child.children:
-                child.get_child_nodes(tree)
-            tree.append(child.data)
+                results.extend(child.get_children_results())
+        return results
 
-    def change_child_nodes(self):
+    def apply_for_children_nodes(self):
         for child in self.children:
-            child.change_pattern()
-            child.change_child_nodes()
+            child.apply_no_cascade()
+            child.apply_for_children_nodes()
+
+    def print_result(self):
+        print(self.result)
 
 
 class Tree:
-    def __init__(self, root):
-        self.root = root
+    def __init__(self, name):
+        self.name = name
         self.children = []
 
     def add_node(self, node):
         self.children.append(node)
 
-    def change_all(self):
+    def apply_all(self):
         for child in self.children:
-            child.change_pattern()
-
-        for child in self.children:
-            child.change_child_nodes()
+            child.apply_no_cascade()
+            child.apply_for_children_nodes()
 
     def delete_child(self, index: int):
         self.children.pop(index)
 
-    def print_all_nodes(self):
-        nodes = [self.root]
+    def print_all_results(self):
+        results = [self.name]
 
         for child in self.children:
-            nodes.append(child.data)
-        for child in self.children:
-            child.get_child_nodes(nodes)
+            results.append(child.result)
+            results.extend(child.get_children_results())
 
-        print(*nodes, sep="\n")
-        print('Tree Size:' + str(len(nodes)))
+        print(*results, sep="\n")
+        print('Tree Size:' + str(len(results)))

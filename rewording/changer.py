@@ -20,6 +20,10 @@ def change(old, new):
             if number == 'plur':
                 new = new_parse.inflect({time, number}).word
                 return new
+            if (time == 'pres'):
+                person = old_parse.tag.person
+                new = new_parse.inflect({time, number, person}).word
+                return new
             gender = old_parse.tag.gender
             new = new_parse.inflect({time, number, gender}).word
             return new
