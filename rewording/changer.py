@@ -45,8 +45,7 @@ def change(old, new):
         if old_parse.tag.POS == 'VERB':
             verb_positions = []
             splitted = new.split(' ')
-            for i, word in range(len(splitted)):
-                word = splitted[i]
+            for i, word in enumerate(splitted):
                 word_parse = morph.parse(word)[0]
                 if word_parse.tag.POS == 'VERB' or word_parse.tag.POS == 'INFN':
                     verb_positions.append(i)
@@ -54,8 +53,9 @@ def change(old, new):
                 new_parse = morph.parse(new.split(' ')[k])[0]
                 time = old_parse.tag.tense
                 number = old_parse.tag.number
+                person = old_parse.tag.person
                 if number == 'plur':
-                    new_change_word = new_parse.inflect({time, number}).word
+                    new_change_word = new_parse.inflect({time, number, person}).word
                     split_list = new.split(' ')
                     split_list[k] = new_change_word
                     new = ' '.join(split_list)
