@@ -17,8 +17,9 @@ def change(old, new):
         if old_parse.tag.POS == 'VERB' and new_parse.tag.POS == 'INFN':
             time = old_parse.tag.tense
             number = old_parse.tag.number
+            person = old_parse.tag.person
             if number == 'plur':
-                new = new_parse.inflect({time, number}).word
+                new = new_parse.inflect({time, number, person}).word
                 return new
             if (time == 'pres'):
                 person = old_parse.tag.person
