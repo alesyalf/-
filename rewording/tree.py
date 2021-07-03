@@ -7,6 +7,8 @@ class Node:
         self.words = template.split('$')
         self.data = data
         self.children = []
+        if len(self.words) != len(data) * 2 + 1:
+            raise ValueError('number of parameters doesn\'t match')
 
     def add_child(self, node):
         self.children.append(node)
@@ -25,6 +27,13 @@ class Node:
                 child.apply_in_position(child.data.index(new_word) * 2 + 1, new_word)
             except ValueError:
                 pass
+
+    def change_data(self, index, new_word):
+        for child in self.children:
+            for i, word in enumerate(child.data):
+                if word == self.data[index]:
+                    child.change_data(i, new_word)
+        self.data[index] = new_word
 
     def apply_no_cascade(self):
         for i, word in enumerate(self.data):
